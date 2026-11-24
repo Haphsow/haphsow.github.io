@@ -69,6 +69,22 @@
   .soon b{font-size:22px;color:var(--g);animation:pulse2 1.2s infinite}
   @keyframes pulse2{50%{opacity:.4}}
 
+  /* how to buy + roadmap */
+  .steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .step{background:var(--panel);border:2px solid var(--line);padding:18px;position:relative}
+  .step .n{display:inline-block;background:var(--g);color:#000;font-size:12px;padding:6px 9px;margin-bottom:12px;box-shadow:3px 3px 0 #0a3d00}
+  .step h3{font-size:11px;color:var(--g);margin-bottom:10px}
+  .step p{font-size:9px;opacity:.85}
+  .road{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;position:relative}
+  .phase{background:var(--panel);border:2px solid var(--line);padding:18px}
+  .phase.done{border-color:var(--g);box-shadow:0 0 18px rgba(57,255,20,.25)}
+  .phase .ph{font-size:9px;opacity:.7;margin-bottom:8px}
+  .phase h3{font-size:11px;color:var(--g);margin-bottom:12px}
+  .phase ul{list-style:none;font-size:9px;line-height:2}
+  .phase li::before{content:"□ ";color:var(--g)}
+  .phase li.ok::before{content:"■ "}
+  @media(max-width:860px){.steps,.road{grid-template-columns:minmax(0,1fr)}}
+
   /* game */
   .game-box{background:var(--panel);border:2px solid var(--g);padding:16px;box-shadow:0 0 30px rgba(57,255,20,.2)}
   .hud{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:10px;margin-bottom:12px}
@@ -97,7 +113,7 @@
 <div class="bar">
   <div class="wrap">
     <div class="brand">🐸 PEPE × NVDA</div>
-    <nav class="nav"><a href="#top">Home</a><a href="#token">Token</a><a href="#game-sec">Game</a><a href="#why">Why</a></nav>
+    <nav class="nav"><a href="#top">Home</a><a href="#token">Token</a><a href="#buy">How to buy</a><a href="#game-sec">Game</a><a href="#roadmap">Roadmap</a><a href="#why">Why</a></nav>
     <div class="sound">
       <button id="snd">♪ ON</button>
       <input id="vol" type="range" min="0" max="100" value="35" aria-label="Volume">
@@ -134,6 +150,19 @@
   </div>
 </section>
 
+<section id="buy">
+  <div class="wrap">
+    <h2>🛒 HOW TO BUY</h2>
+    <div class="sub">Four steps, no rocket science</div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><h3>GET A WALLET</h3><p>Install Phantom (or another Solana wallet) on your phone or as a browser extension. Save your seed phrase offline and never share it.</p></div>
+      <div class="step"><span class="n">2</span><h3>GET SOME SOL</h3><p>Buy SOL on an exchange or right inside your wallet, then make sure it sits in your wallet.</p></div>
+      <div class="step"><span class="n">3</span><h3>GO TO PUMP.FUN</h3><p>Open pump.fun, connect your wallet and paste the CA from the token section above. Check it matches exactly.</p></div>
+      <div class="step"><span class="n">4</span><h3>SWAP</h3><p>Pick how much SOL to swap, confirm in your wallet. Only use what you can afford to lose.</p></div>
+    </div>
+  </div>
+</section>
+
 <section id="game-sec">
   <div class="wrap">
     <h2>🎮 CATCH THE PUMP</h2>
@@ -151,6 +180,19 @@
         <span><b style="color:var(--r)">▮</b> red candle −$150, combo reset</span>
         <span><b style="color:var(--gold)">●</b> gold coin +$500</span>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <h2>🗺️ ROADMAP</h2>
+    <div class="sub">Highly professional. Totally serious. No promises.</div>
+    <div class="road">
+      <div class="phase done"><div class="ph">PHASE 1</div><h3>THE RETURN</h3><ul><li class="ok">Put on the jacket</li><li class="ok">Clean the glasses</li><li class="ok">Launch the website</li></ul></div>
+      <div class="phase"><div class="ph">PHASE 2</div><h3>THE LAUNCH</h3><ul><li>Token goes live on pump.fun</li><li>CA posted on this site</li><li>First green candle</li></ul></div>
+      <div class="phase"><div class="ph">PHASE 3</div><h3>THE COMMUNITY</h3><ul><li>X and Telegram</li><li>Meme contest</li><li>Beat the game record</li></ul></div>
+      <div class="phase"><div class="ph">PHASE 4</div><h3>THE PANTS</h3><ul><li>Find out what else fits in the pants</li><li>Buy a second jacket</li><li>???</li></ul></div>
     </div>
   </div>
 </section>

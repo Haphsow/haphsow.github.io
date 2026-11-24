@@ -166,7 +166,7 @@
 <section id="game-sec">
   <div class="wrap">
     <h2>🎮 CATCH THE PUMP</h2>
-    <div class="sub">Move the pants ← → (or with mouse / finger). Catch green candles, dodge the red ones. 60 seconds.</div>
+    <div class="sub">Move the pants ← → (or with mouse / finger). Hold them under a candle until it is fully swallowed, otherwise it does not count. Longer candles pay more. 60 seconds.</div>
     <div class="game-box">
       <div class="hud">
         <div>BAG: <b id="score">$0</b></div>
@@ -176,8 +176,8 @@
       </div>
       <canvas id="game" width="900" height="600"></canvas>
       <div class="legend">
-        <span><b style="color:var(--g)">▮</b> green candle +$100</span>
-        <span><b style="color:var(--r)">▮</b> red candle −$150, combo reset</span>
+        <span><b style="color:var(--g)">▮</b> green candle +$100…+$200, longer = more</span>
+        <span><b style="color:var(--r)">▮</b> red candle −$150…−$300 and combo reset, if you swallow it</span>
         <span><b style="color:var(--gold)">●</b> gold coin +$500</span>
       </div>
     </div>
@@ -309,7 +309,7 @@ const cv=document.getElementById('game'),g=cv.getContext('2d'),W=cv.width,H=cv.h
 const $=id=>document.getElementById(id);
 let best=0; try{best=+localStorage.getItem('pepeBest')||0;}catch(e){}
 $('best').textContent='$'+best;
-let st='idle',items=[],px=W/2,score=0,combo=1,timeLeft=60,spawnT=0,lastTs=0,keys={},pops=[];
+let swallowing=false,st='idle',items=[],px=W/2,score=0,combo=1,timeLeft=60,spawnT=0,lastTs=0,keys={},pops=[];
 const PW=130,PH=46;
 addEventListener('keydown',e=>{keys[e.key]=true; if((e.key===' '||e.key==='Enter')&&st!=='play'&&document.activeElement===document.body){e.preventDefault();start();}});
 addEventListener('keyup',e=>keys[e.key]=false);
@@ -321,25 +321,34 @@ function start(){
   initAudio();ac.resume(); if(!playing) toggleMusic();
   st='play';items=[];score=0;combo=1;timeLeft=60;spawnT=0;pops=[];
 }
+const HMIN=28,HMAX=110,WICK=12;
+const mult=h=>1+(h-HMIN)/(HMAX-HMIN);            // 1x for the shortest candle, 2x for the longest
+const val=(base,h)=>Math.round(base*mult(h)/10)*10; // rounded to $10
 function spawn(){
   const r=Math.random(), kind=r<.08?'gold':r<.36?'red':'green';
-  items.push({kind,x:rnd(30,W-30),y:-40,v:rnd(170,260)+(60-timeLeft)*4,h:rnd(28,60)});
+  const h=kind==='gold'?0:rnd(HMIN,HMAX);
+  items.push({kind,x:rnd(30,W-30),y:-80,v:rnd(170,240)+(60-timeLeft)*3,h});
 }
 function drawPants(x){
   const y=H-PH-14;
   g.fillStyle='#d9a97a';g.fillRect(x-PW/2,y,PW,PH);
   g.fillStyle='#b9875a';g.fillRect(x-PW/2,y,PW,8);
   g.fillStyle='#7fbf3f';g.fillRect(x-PW/2-16,y-4,18,22);g.fillRect(x+PW/2-2,y-4,18,22); // hands
-  g.fillStyle='rgba(57,255,20,.35)';g.fillRect(x-PW/2+8,y-6,PW-16,6);
+  g.fillStyle=swallowing?'rgba(57,255,20,.9)':'rgba(57,255,20,.35)';g.fillRect(x-PW/2+8,y-6,PW-16,6);
 }
 function drawItem(it){
   if(it.kind==='gold'){
     g.fillStyle='#ffd23f';g.beginPath();g.arc(it.x,it.y,16,0,7);g.fill();
     g.fillStyle='#000';g.font='14px "Press Start 2P"';g.textAlign='center';g.fillText('$',it.x+1,it.y+7);return;
   }
-  const col=it.kind==='green'?'#39ff14':'#ff3b5c';
-  g.fillStyle=col;g.fillRect(it.x-2,it.y-it.h/2-12,4,it.h+24);g.fillRect(it.x-10,it.y-it.h/2,20,it.h);
-  if(it.kind==='green'){g.shadowColor=col;g.shadowBlur=14;g.fillRect(it.x-10,it.y-it.h/2,20,it.h);g.shadowBlur=0;}
+  const col=it.kind==='green'?'#39ff14':'#ff3b5c', py=H-PH-14;
+  g.save();
+  if(it.lost) g.globalAlpha=.3;                                      // slipped off: falls past, faded
+  else {g.beginPath();g.rect(0,0,W,py);g.clip();}                    // disappears into the pants
+  g.fillStyle=col;g.fillRect(it.x-2,it.y-it.h/2-WICK,4,it.h+2*WICK);g.fillRect(it.x-10,it.y-it.h/2,20,it.h);
+  if(it.kind==='green'&&!it.lost){g.shadowColor=col;g.shadowBlur=14;g.fillRect(it.x-10,it.y-it.h/2,20,it.h);g.shadowBlur=0;}
+  if(!it.lost&&mult(it.h)>=1.5){g.fillStyle=col;g.font='12px "Press Start 2P"';g.textAlign='left';g.fillText('x'+mult(it.h).toFixed(1),it.x+16,it.y-it.h/2+6);}
+  g.restore();
 }
 function text(s,y,size,col){g.fillStyle=col;g.font=`${size}px "Press Start 2P"`;g.textAlign='center';g.fillText(s,W/2,y);}
 function loop(ts){
@@ -353,13 +362,22 @@ function loop(ts){
     timeLeft-=dt; spawnT-=dt;
     if(spawnT<=0){spawn();spawnT=Math.max(.28,.75-(60-timeLeft)*.008);}
     const py=H-PH-14;
+    swallowing=false;
     items.forEach(it=>{
       it.y+=it.v*dt;
-      if(!it.hit && it.y+it.h/2>py && it.y-it.h/2<py+PH && Math.abs(it.x-px)<PW/2+10){
+      if(it.hit||it.lost) return;
+      if(it.kind==='gold'){                                         // coins: simple catch
+        if(it.y+16>py && it.y-16<py+PH && Math.abs(it.x-px)<PW/2+10){it.hit=true;score+=500;sfx('gold');pops.push({x:it.x,y:py,t:1,s:'+$500',c:'#ffd23f'});}
+        return;
+      }
+      const top=it.y-it.h/2-WICK, bottom=it.y+it.h/2+WICK;
+      if(bottom<=py) return;                                        // not reached the pants yet
+      if(Math.abs(it.x-px)>PW/2-10){it.lost=true;return;}           // pants not fully under the candle: it slips off
+      swallowing=true;
+      if(top>=py){                                                  // fully swallowed: it counts
         it.hit=true;
-        if(it.kind==='green'){score+=100*combo;combo=Math.min(10,combo+1);sfx('good');pops.push({x:it.x,y:py,t:1,s:'+$'+100*(combo-1),c:'#39ff14'});}
-        else if(it.kind==='gold'){score+=500;sfx('gold');pops.push({x:it.x,y:py,t:1,s:'+$500',c:'#ffd23f'});}
-        else {score=Math.max(0,score-150);combo=1;sfx('bad');pops.push({x:it.x,y:py,t:1,s:'-$150',c:'#ff3b5c'});}
+        if(it.kind==='green'){const v=val(100,it.h)*combo;score+=v;combo=Math.min(10,combo+1);sfx('good');pops.push({x:it.x,y:py,t:1,s:'+$'+v,c:'#39ff14'});}
+        else {const v=val(150,it.h);score=Math.max(0,score-v);combo=1;sfx('bad');pops.push({x:it.x,y:py,t:1,s:'-$'+v,c:'#ff3b5c'});}
       }
     });
     items=items.filter(it=>!it.hit&&it.y<H+60);

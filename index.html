@@ -221,6 +221,7 @@ const TOKEN={
   tg:""               // Telegram link, can stay empty
 };
 /* =============================================================== */
+const rnd=(a,b)=>a+Math.random()*(b-a);
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 document.querySelectorAll('.tk').forEach(e=>e.textContent=TOKEN.ticker);
 const phrases=["HE IS BACK","▲ ONLY UP","JACKET ON","CANDLES GREEN",TOKEN.ticker,"WAGMI","TO THE MOON","GPU GO BRRR"];
